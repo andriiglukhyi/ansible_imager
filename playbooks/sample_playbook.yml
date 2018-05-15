@@ -21,10 +21,15 @@
     - name: Clone the Book App to the Home Directory
       git: clone=yes repo=https://github.com/brickfaced/django-imager.git dest=/home/ubuntu/django-imager
       become: yes
-      become_method: sudo
+      # become_method: sudo
 
     - name: Create a virtual env for the project to run in
       command: python3 -m venv /home/ubuntu/ENV
+      become: yes
+      become_method: sudo
+
+    - name: Install Requirements into virtual env
+      pip:  virtualenv=/home/ubuntu/ENV requirements=/home/ubuntu/django-imager/requirements.txt
       become: yes
       become_method: sudo
 
@@ -42,7 +47,7 @@
       become: yes
       become_method: sudo
       when: not default_stat.stat.exists
-
+    
     - name: Create a new Nginx config
       template:
         src: templates/nginx.config
@@ -50,7 +55,28 @@
       become: yes
       become_method: sudo
     
+    - name: Copy script into 
+      template: src=templates/gunicorn.service dest=/etc/systemd/system/gunicorn.service
+      become: yes
+      become_method: sudo
     - name: Start nginx service
       service: name=nginx state=restarted
+      become: yes
+      become_method: sudo
+    
+    - name: Enable gunicorn
+      command: systemctl enable gunicorn
+      become: yes
+      become_method: sudo
+    
+    - name: Stop gunicorn
+      command: systemctl stop gunicorn
+      become: yes
+      become_method: sudo
+    
+    
+    
+    - name: Start gunicorn
+      command: systemctl start gunicorn
       become: yes
       become_method: sudo
